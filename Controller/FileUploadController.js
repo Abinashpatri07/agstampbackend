@@ -1,6 +1,6 @@
 import busboy from 'busboy';
 import { v2 as cloudinary } from 'cloudinary';
-import StampModel from '../model/stampModel.js';
+import StampModel from '../Model/stampModel.js';
 import { synchFunc } from '../Utils/SynchFunc.js';
 import { ErrorHandler } from '../Utils/ErrorHandler.js';
 
