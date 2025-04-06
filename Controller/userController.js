@@ -3,9 +3,6 @@ import { UserModel } from '../Model/userModel.js';
 import jwt from "jsonwebtoken";
 import { synchFunc } from '../Utils/SynchFunc.js';
 import { ErrorHandler } from '../Utils/ErrorHandler.js';
-import fs from "fs";
-import path from "path";
-import busboy from 'busboy';
 
 export const userRegister = synchFunc(async (req, res) => {
     const { firstname, lastname, username, email, password } = req.body;
@@ -77,7 +74,7 @@ export const userLogout = synchFunc(async (_, res) => {
         secure: true,
         sameSite: "none",
         path: "/",
-    }).status(201).json({ success:true, message: 'User Logged out successfully',user:null });
+    }).status(201).json({ success:true, message: 'Logout successfully',user:null });
 })
 
 
