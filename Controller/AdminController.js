@@ -6,3 +6,8 @@ export const allStamps = synchFunc(async (_, res) => {
     const stamps = await stampModel.find();
     res.status(201).json({ success:true, stamps });
 });
+
+export const StatusUpdate = synchFunc(async (_, res) => {
+    const stamps = await stampModel.find();
+    res.status(201).json({ success:true, stamps });
+});

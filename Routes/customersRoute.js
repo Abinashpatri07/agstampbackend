@@ -13,6 +13,3 @@ customersRoute.post('/user/register', userRegister);
 customersRoute.post('/user/login', userLogin);
 customersRoute.get('/user/info',authorization, getUserInfo);
 customersRoute.get('/user/logout', authorization, userLogout);
-
-customersRoute.post('/admin/addStamp',authorization,Protected,createStamp);
-customersRoute.get('/admin/getallstamp',authorization,allStamps);

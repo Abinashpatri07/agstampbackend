@@ -28,7 +28,11 @@ const StampSchema = new Schema(
         publicUrl:{type:String,required: [true, "publicUrl is required"],},
       }],
       default: [],
-    },  
+    },
+    active:{
+      type:Boolean,
+      default:false
+    }
   },
   { timestamps: true }
 );

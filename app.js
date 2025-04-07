@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import cloudinary from 'cloudinary';
 import { errorHandlerMiddleware } from "./Middleware/errorMiddleWare.js";
+import { adminRoute } from "./Routes/adminRoute.js";
 
 //setting path of env environment
 dotenv.config({path:path.join(path.resolve(),"/Config/config.env")});
@@ -41,7 +42,7 @@ app.get("/api/v1/user/login",(_,res)=>{
     res.end("welcome to my server!")
 })
 app.use("/api/v1",customersRoute);
-
+app.use("/api/v1",adminRoute);
 
 
 
