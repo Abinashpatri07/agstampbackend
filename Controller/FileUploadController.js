@@ -108,8 +108,11 @@ export const deleteStamp = synchFunc(async (req, res) => {
 
   await StampModel.findByIdAndDelete(id);
 
+  const stamps = await StampModel.find();
+
   res.status(200).json({
     success: true,
+    stamps,
     message: 'Stamp and associated images deleted successfully'
   });
 });
