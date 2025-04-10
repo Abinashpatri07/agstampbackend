@@ -7,3 +7,10 @@ export const allStamps = synchFunc(async (_, res) => {
     res.status(201).json({ success:true, stamps });
 });
 
+
+export const singleStamp = synchFunc(async (req, res) => {
+    const {id} = req.params; 
+    const stamp = await StampModel.findById(id);
+    res.status(201).json({ success:true, stamp });
+});
+
