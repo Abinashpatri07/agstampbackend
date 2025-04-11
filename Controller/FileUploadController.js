@@ -117,34 +117,5 @@ export const deleteStamp = synchFunc(async (req, res) => {
   });
 });
 
-export const updateStampImages = synchFunc(async (req, res) => {
-  const { id } = req.params;
-  const { imagesToDelete } = req.body;
-
-  if (!Array.isArray(imagesToDelete) || !imagesToDelete.length) {
-    throw new ErrorHandler(400, 'No images specified for deletion');
-  }
-
-  const stamp = await StampModel.findById(id);
-  if (!stamp) throw new ErrorHandler(404, 'Stamp not found');
-
-  const existingPublicIds = stamp.images.map(img => img.publicId);
-  const invalidIds = imagesToDelete.filter(id => !existingPublicIds.includes(id));
-  if (invalidIds.length) throw new ErrorHandler(400, 'Some images not found in this stamp');
-
-  await cloudinary.api.delete_resources(imagesToDelete);
-
-  const updatedStamp = await StampModel.findByIdAndUpdate(
-    id,
-    { $pull: { images: { publicId: { $in: imagesToDelete } } } },
-    { new: true }
-  );
-
-  res.status(200).json({
-    success: true,
-    message: 'Images deleted successfully',
-    stamp: updatedStamp
-  });
-});
 
 
