@@ -98,7 +98,7 @@ export const updateStamp = synchFunc(async (req, res) => {
   }
 
   // Update only provided fields
-  const updatableFields = ['name', 'description', 'price', 'stock', 'active'];
+  const updatableFields = ['name', 'description', 'price', 'stock', 'active', 'beginDate'];
   updatableFields.forEach(field => {
     if (formData[field] !== undefined) {
       existingStamp[field] = formData[field];
@@ -113,4 +113,5 @@ export const updateStamp = synchFunc(async (req, res) => {
     stamp: existingStamp
   });
 });
+
 

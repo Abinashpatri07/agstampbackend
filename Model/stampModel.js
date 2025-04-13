@@ -23,16 +23,27 @@ const StampSchema = new Schema(
       default: 0,
     },
     images: {
-      type: [{
-        publicId:{type:String,required: [true, "publicId is required"],},
-        publicUrl:{type:String,required: [true, "publicUrl is required"],},
-      }],
+      type: [
+        {
+          publicId: { type: String, required: [true, "publicId is required"] },
+          publicUrl: { type: String, required: [true, "publicUrl is required"] },
+        },
+      ],
       default: [],
     },
-    active:{
-      type:Boolean,
-      default:false
-    }
+    active: {
+      type: Boolean,
+      default: false,
+    },
+    beginDate: {
+      type: Date,
+      required: [true, "Begin date is required"],
+    },
+    endDate: {
+      type: Date,
+      default: new Date("9999-12-31T00:00:00.000Z"),
+      immutable: true,
+    },
   },
   { timestamps: true }
 );
