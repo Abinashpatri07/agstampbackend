@@ -33,7 +33,7 @@ const StampSchema = new Schema(
     },
     active: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     beginDate: {
       type: Date,

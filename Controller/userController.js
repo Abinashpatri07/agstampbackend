@@ -3,6 +3,7 @@ import { UserModel } from '../Model/userModel.js';
 import jwt from "jsonwebtoken";
 import { synchFunc } from '../Utils/SynchFunc.js';
 import { ErrorHandler } from '../Utils/ErrorHandler.js';
+import stampModel from '../Model/stampModel.js';
 
 export const userRegister = synchFunc(async (req, res) => {
     const { firstname, lastname, username, email, password } = req.body;
@@ -29,7 +30,7 @@ export const userRegister = synchFunc(async (req, res) => {
     // Save user to database
     await newUser.save();
 
-    res.status(201).json({ success:true, message: 'User registered successfully'});
+    res.status(201).json({ success:true, message: 'register successful'});
 })
 
 export const userLogin = synchFunc(async (req, res) => {
@@ -60,7 +61,7 @@ export const userLogin = synchFunc(async (req, res) => {
         secure: true,
         sameSite: "none",
         path: "/",
-    }).status(201).json({ success:true, message: 'User Loggedin successfully', user: existingUser });
+    }).status(201).json({ success:true, message: 'Login successful', user: existingUser });
 })
 
 export const getUserInfo = synchFunc(async (req, res) => {
@@ -74,9 +75,13 @@ export const userLogout = synchFunc(async (_, res) => {
         secure: true,
         sameSite: "none",
         path: "/",
-    }).status(201).json({ success:true, message: 'Logout successfully',user:null });
+    }).status(201).json({ success:true, message: 'Logout successful',user:null });
 })
 
+export const userProduct = synchFunc(async (_, res) => {
+    const stamps = await stampModel.find({active:true});
+    res.status(201).json({ success:true, stamps });
+})
 
 
 

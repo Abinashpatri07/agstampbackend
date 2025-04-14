@@ -2,6 +2,7 @@ import busboy from "busboy";
 import StampModel from "../Model/stampModel.js"
 import { synchFunc } from "../Utils/SynchFunc.js";
 import { v2 as cloudinary } from 'cloudinary';
+
 export const allStamps = synchFunc(async (_, res) => {
     const stamps = await StampModel.find();
     res.status(201).json({ success:true, stamps });
