@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { synchFunc } from '../Utils/SynchFunc.js';
 import { ErrorHandler } from '../Utils/ErrorHandler.js';
 import stampModel from '../Model/stampModel.js';
+import PhotoModel from '../Model/WaveModel.js';
 
 export const userRegister = synchFunc(async (req, res) => {
     const { firstname, lastname, username, email, password } = req.body;
@@ -83,6 +84,10 @@ export const userProduct = synchFunc(async (_, res) => {
     res.status(201).json({ success:true, stamps });
 })
 
+export const getWaveImg = synchFunc(async (_, res) => {
+    const wave = await PhotoModel.find();
+    res.status(201).json({ success:true, wave });
+})
 
 
 

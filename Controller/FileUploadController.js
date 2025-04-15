@@ -3,6 +3,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import StampModel from '../Model/stampModel.js';
 import { synchFunc } from '../Utils/SynchFunc.js';
 import { ErrorHandler } from '../Utils/ErrorHandler.js';
+import PhotoModel from '../Model/WaveModel.js';
 
 // Cloudinary Config
 cloudinary.config({
@@ -135,4 +136,121 @@ export const deleteStamp = synchFunc(async (req, res) => {
 });
 
 
+export const uploadPhoto = async (req, res) => {
+  try {
+    const bb = busboy({ headers: req.headers });
+
+    let uploadResult = null;
+    let fileProcessingStarted = false;
+    let uploadPromise;
+
+    bb.on('file', (fieldname, file, info) => {
+      fileProcessingStarted = true;
+      const { mimeType } = info;
+
+      if (!mimeType.startsWith('image/')) {
+        file.resume();
+        return;
+      }
+
+      const chunks = [];
+
+      file.on('data', (chunk) => chunks.push(chunk));
+
+      uploadPromise = new Promise((resolve, reject) => {
+        file.on('end', async () => {
+          try {
+            if (chunks.length === 0) {
+              return reject(new Error('Empty file received'));
+            }
+
+            const buffer = Buffer.concat(chunks);
+
+            if (buffer.length > 10 * 1024 * 1024) {
+              return reject(new Error('File size exceeds 10MB limit'));
+            }
+
+            // Check for existing photo and delete it
+            const existingPhoto = await PhotoModel.findOne();
+            if (existingPhoto) {
+              // Delete from Cloudinary
+              await cloudinary.uploader.destroy(existingPhoto.publicId);
+              // Delete from MongoDB
+              await PhotoModel.deleteOne({ _id: existingPhoto._id });
+            }
+
+            // Upload new photo to Cloudinary
+            const cloudinaryResult = await new Promise((innerResolve, innerReject) => {
+              const uploadStream = cloudinary.uploader.upload_stream(
+                { folder: 'user-uploads' },
+                (error, result) => {
+                  if (error || !result) {
+                    return innerReject(error || new Error('Cloudinary upload failed'));
+                  }
+                  innerResolve(result);
+                }
+              );
+
+              uploadStream.on('error', innerReject);
+              uploadStream.end(buffer);
+            });
+
+            // Save to MongoDB
+            const newPhoto = await PhotoModel.create({
+              publicId: cloudinaryResult.public_id,
+              url: cloudinaryResult.secure_url,
+            });
+
+            resolve({
+              id: newPhoto._id,
+              publicId: newPhoto.publicId,
+              url: newPhoto.url,
+              createdAt: newPhoto.createdAt,
+            });
+          } catch (error) {
+            reject(error);
+          }
+        });
+
+        file.on('error', reject);
+      });
+    });
+
+    bb.on('error', (err) => {
+      throw err;
+    });
+
+    const pipelinePromise = new Promise((resolve, reject) => {
+      bb.on('close', async () => {
+        if (!fileProcessingStarted) {
+          return reject(new Error('No file was uploaded'));
+        }
+
+        try {
+          uploadResult = await uploadPromise;
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      });
+
+      req.on('error', reject);
+      req.pipe(bb);
+    });
+
+    await pipelinePromise;
+
+    return res.status(201).json({
+      success: true,
+      data: uploadResult,
+    });
+
+  } catch (error) {
+    console.error('Upload error:', error);
+    return res.status(400).json({
+      success: false,
+      message: error.message || 'File upload failed',
+    });
+  }
+};
 
