@@ -80,7 +80,11 @@ export const userLogout = synchFunc(async (_, res) => {
 })
 
 export const userProduct = synchFunc(async (_, res) => {
-    const stamps = await stampModel.find({active:true});
+    const today = new Date();
+    const stamps = await stampModel.find({
+    active: true,
+    beginDate: { $lte: today },
+    });
     res.status(201).json({ success:true, stamps });
 })
 
