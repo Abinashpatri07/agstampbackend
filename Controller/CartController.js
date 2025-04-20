@@ -142,3 +142,18 @@ export const removeCartItem = async (req, res) => {
   }
 };
 
+export const removeAllCartItem = async (req, res) => {
+  try {
+    const {id} = req.params;
+    const data = await CartModel.deleteOne({_id:id});
+    if(data.deletedCount == 1){
+      res.status(200).json({cart:null});
+    }else{
+      res.status(404).json({ message: "cart not found" });
+    }
+  } catch (err) {
+    console.error("Error removing item from cart:", err);
+    res.status(500).json({ message: "Server error while removing item" });
+  }
+};
+

@@ -1,8 +1,8 @@
 import express from 'express';
 import { authorization } from '../Utils/Athorization.js';
-import { createStamp, deleteStamp, uploadPhoto } from '../Controller/FileUploadController.js';
+import { createCarousel, createStamp, deleteCarousel, deleteStamp, updateCarousel, uploadPhoto } from '../Controller/FileUploadController.js';
 import { Protected } from '../Utils/Protected.js';
-import { allStamps, singleStamp, updateStamp } from '../Controller/AdminController.js';
+import { allCarousel, allStamps, singleStamp, updateStamp } from '../Controller/AdminController.js';
 
 export const adminRoute = express.Router();
 
@@ -13,3 +13,10 @@ adminRoute.post('/admin/waveimg',authorization,Protected,uploadPhoto);
 adminRoute.delete('/admin/deleteStamp/:id',authorization,Protected,deleteStamp);
 adminRoute.get('/admin/getstamp/:id',singleStamp);
 adminRoute.put('/admin/updateStamp/:id',authorization,Protected,updateStamp);
+
+// CarouselModel
+adminRoute.post('/admin/addcarousel',authorization,Protected,createCarousel);
+adminRoute.delete('/admin/deletecarousel/:id',authorization,Protected,deleteCarousel);
+// adminRoute.get('/admin/getcarousel/:id',singleStamp);
+adminRoute.put('/admin/updatecarousel/:id',authorization,Protected,updateCarousel);
+adminRoute.get('/admin/getallcarousel',allCarousel);

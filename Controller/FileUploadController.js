@@ -4,6 +4,7 @@ import StampModel from '../Model/stampModel.js';
 import { synchFunc } from '../Utils/SynchFunc.js';
 import { ErrorHandler } from '../Utils/ErrorHandler.js';
 import PhotoModel from '../Model/WaveModel.js';
+import CarouselModel from '../Model/CarouselModel.js';
 
 // Cloudinary Config
 cloudinary.config({
@@ -253,4 +254,194 @@ export const uploadPhoto = async (req, res) => {
     });
   }
 };
+
+export const createCarousel = synchFunc(async (req, res) => {
+  const bb = busboy({ headers: req.headers });
+
+  let name = "";
+  const uploadPromises = [];
+
+  bb.on("field", (fieldname, val) => {
+    if (fieldname === "name") {
+      name = val.trim();
+    }
+  });
+
+  bb.on("file", (fieldname, file, info) => {
+    const { mimeType } = info;
+
+    if (!mimeType.startsWith("image/")) {
+      throw new ErrorHandler(400, "Only image files are allowed!");
+    }
+
+    const chunks = [];
+
+    file.on("data", (chunk) => chunks.push(chunk));
+
+    const uploadPromise = new Promise((resolve, reject) => {
+      file.on("end", () => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "carousel" },
+          (error, result) => {
+            if (error || !result) {
+              reject(new ErrorHandler(500, "Failed to upload image to Cloudinary"));
+            } else {
+              resolve({
+                publicId: result.public_id,
+                publicUrl: result.secure_url,
+              });
+            }
+          }
+        );
+        uploadStream.end(Buffer.concat(chunks));
+      });
+    });
+
+    uploadPromises.push(uploadPromise);
+  });
+
+  await new Promise((resolve, reject) => {
+    bb.on("finish", resolve);
+    bb.on("error", (err) => reject(new ErrorHandler(500, err.message)));
+    req.pipe(bb);
+  });
+
+  if (!name) {
+    throw new ErrorHandler(400, "Carousel name is required");
+  }
+
+  let images = [];
+
+  try {
+    images = await Promise.all(uploadPromises);
+    if (!images.length) throw new ErrorHandler(400, "At least one image is required");
+  } catch (error) {
+    if (images.length) {
+      await cloudinary.api.delete_resources(images.map((img) => img.publicId));
+    }
+    throw error;
+  }
+
+  const newCarousel = await CarouselModel.create({
+    name,
+    images,
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "Carousel image(s) added successfully",
+    carousel: newCarousel,
+  });
+});
+
+export const updateCarousel = synchFunc(async (req, res) => {
+  const bb = busboy({ headers: req.headers });
+  const { id } = req.params;
+
+  const formData = {};
+  const uploadPromises = [];
+
+  bb.on("field", (fieldname, val) => {
+    if (fieldname === "removedImages") {
+      try {
+        formData.removedImages = JSON.parse(val);
+      } catch {
+        formData.removedImages = [];
+      }
+    } else {
+      formData[fieldname] = val;
+    }
+  });
+
+  bb.on("file", (fieldname, file, info) => {
+    const { mimeType } = info;
+    const chunks = [];
+
+    if (!mimeType.startsWith("image/")) {
+      throw new ErrorHandler(400, "Only image files are allowed!");
+    }
+
+    file.on("data", (chunk) => chunks.push(chunk));
+
+    const uploadPromise = new Promise((resolve, reject) => {
+      file.on("end", () => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { folder: "carousel" },
+          (error, result) => {
+            if (error || !result) {
+              reject(new ErrorHandler(500, "Cloudinary upload failed"));
+            } else {
+              resolve({
+                publicId: result.public_id,
+                publicUrl: result.secure_url,
+              });
+            }
+          }
+        );
+        uploadStream.end(Buffer.concat(chunks));
+      });
+    });
+
+    uploadPromises.push(uploadPromise);
+  });
+
+  await new Promise((resolve, reject) => {
+    bb.on("finish", resolve);
+    bb.on("error", (err) => reject(new ErrorHandler(500, err.message)));
+    req.pipe(bb);
+  });
+
+  const existingCarousel = await CarouselModel.findById(id);
+  if (!existingCarousel) throw new ErrorHandler(404, "Carousel not found");
+
+  // Remove old images if specified
+  if (formData.removedImages?.length) {
+    await cloudinary.api.delete_resources(formData.removedImages);
+    existingCarousel.images = existingCarousel.images.filter(
+      (img) => !formData.removedImages.includes(img.publicId)
+    );
+  }
+
+  // Upload new images and add them to the model
+  const uploadedImages = await Promise.all(uploadPromises);
+  if (uploadedImages.length) {
+    existingCarousel.images.push(...uploadedImages);
+  }
+
+  // Update name if provided
+  if (formData.name !== undefined) {
+    existingCarousel.name = formData.name.trim();
+  }
+
+  await existingCarousel.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Carousel updated successfully",
+    carousel: existingCarousel,
+  });
+});
+
+export const deleteCarousel = synchFunc(async (req, res) => {
+  const { id } = req.params;
+
+  const carousel = await CarouselModel.findById(id);
+  if (!carousel) throw new ErrorHandler(404, "Carousel not found");
+
+  // Delete associated Cloudinary images
+  if (carousel.images.length) {
+    const publicIds = carousel.images.map((img) => img.publicId);
+    await cloudinary.api.delete_resources(publicIds);
+  }
+
+  await CarouselModel.findByIdAndDelete(id);
+
+  const carousels = await CarouselModel.find();
+
+  res.status(200).json({
+    success: true,
+    carousels,
+    message: "Carousel and associated images deleted successfully",
+  });
+});
 

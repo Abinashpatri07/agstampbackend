@@ -2,6 +2,7 @@ import busboy from "busboy";
 import StampModel from "../Model/stampModel.js"
 import { synchFunc } from "../Utils/SynchFunc.js";
 import { v2 as cloudinary } from 'cloudinary';
+import CarouselModel from "../Model/CarouselModel.js";
 
 export const allStamps = synchFunc(async (_, res) => {
     const stamps = await StampModel.find();
@@ -114,5 +115,11 @@ export const updateStamp = synchFunc(async (req, res) => {
     stamp: existingStamp
   });
 });
+
+export const allCarousel = synchFunc(async (_, res) => {
+  const Carousels = await CarouselModel.find();
+  res.status(201).json({ success:true, Carousels });
+});
+
 
 
