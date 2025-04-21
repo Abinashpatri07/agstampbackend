@@ -121,5 +121,8 @@ export const allCarousel = synchFunc(async (_, res) => {
   res.status(201).json({ success:true, Carousels });
 });
 
-
-
+export const singleCarousel = synchFunc(async (req, res) => {
+  const {id} = req.params; 
+  const carousel = await CarouselModel.findById(id);
+  res.status(201).json({ success:true, carousel });
+});
