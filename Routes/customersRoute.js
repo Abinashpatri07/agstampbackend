@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { getUserInfo, getWaveImg, userLogin, userLogout, userProduct, userRegister } from '../Controller/userController.js';
+import { getUserInfo, getWaveImg, subscribeMailService, userLogin, userLogout, userProduct, userRegister } from '../Controller/userController.js';
 import { authorization } from '../Utils/Athorization.js';
 import { addToCart, getCart, removeAllCartItem, removeCartItem, updateCartItemQuantity } from '../Controller/CartController.js';
 
@@ -22,4 +22,7 @@ customersRoute.post('/user/cartmanagment',authorization, addToCart);
 customersRoute.post('/user/updatecart',authorization, updateCartItemQuantity);
 customersRoute.get('/user/removeitem/:stampId',authorization, removeCartItem);
 customersRoute.get('/user/removeAllitem/:id',authorization, removeAllCartItem);
+customersRoute.post('/user/subscribeMailService',authorization, subscribeMailService);
+
+
 

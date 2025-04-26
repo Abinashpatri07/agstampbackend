@@ -126,3 +126,4 @@ export const singleCarousel = synchFunc(async (req, res) => {
   const carousel = await CarouselModel.findById(id);
   res.status(201).json({ success:true, carousel });
 });
+
