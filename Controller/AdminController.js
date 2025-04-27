@@ -3,6 +3,9 @@ import StampModel from "../Model/stampModel.js"
 import { synchFunc } from "../Utils/SynchFunc.js";
 import { v2 as cloudinary } from 'cloudinary';
 import CarouselModel from "../Model/CarouselModel.js";
+import subscriberModel from "../Model/subcriberModel.js";
+import { mail } from "../Helper/Mail.js";
+import { ErrorHandler } from "../Utils/ErrorHandler.js";
 
 export const allStamps = synchFunc(async (_, res) => {
     const stamps = await StampModel.find();
@@ -127,3 +130,21 @@ export const singleCarousel = synchFunc(async (req, res) => {
   res.status(201).json({ success:true, carousel });
 });
 
+export const getAllSubscriber = synchFunc(async (_, res) => {
+  const subscribers = await subscriberModel.find({}).populate({
+    path: "user",
+    model: "User",
+  });
+
+  res.status(201).json({ success:true, subscribers });
+});
+
+export const sendMailToSubscribers = synchFunc(async (req, res) => {
+    const {selectedSubscribers,subject,message} = req.body;
+    const emailSendRes = await mail(selectedSubscribers,subject,message)
+    if(emailSendRes.messageId){
+        res.status(200).json({ success:true, message:"Sent!" });
+    }else{
+        throw new ErrorHandler(400,'something Went Wrong While Sending The Mail!');
+    }
+});

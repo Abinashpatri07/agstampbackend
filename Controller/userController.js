@@ -6,6 +6,7 @@ import { ErrorHandler } from '../Utils/ErrorHandler.js';
 import stampModel from '../Model/stampModel.js';
 import PhotoModel from '../Model/WaveModel.js';
 import { mail } from '../Helper/Mail.js';
+import subscriberModel from '../Model/subcriberModel.js';
 
 export const userRegister = synchFunc(async (req, res) => {
     const { firstname, lastname, username, email, password } = req.body;
@@ -96,9 +97,19 @@ export const getWaveImg = synchFunc(async (_, res) => {
 
 export const subscribeMailService = synchFunc(async (req, res) => {
     const {email} = req.body;
+    const {user} = req;
     const emailSendRes = await mail([email],"Welcome email","Hello");
     if(emailSendRes.messageId){
+        const newSubscriber = new subscriberModel({
+            user:user._id,
+            subscribedEmail:email,
+        });
+        
+        // Save user to database
+        await newSubscriber.save();
         res.status(200).json({ success:true, message:"Thank you for subscribing" });
+    }else{
+        throw new ErrorHandler(400,'something Went Wrong While Sending The Mail!');
     }
 });
   
