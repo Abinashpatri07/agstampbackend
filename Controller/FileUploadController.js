@@ -22,6 +22,7 @@ export const createStamp = synchFunc(async (req, res) => {
     price: 0,
     stock: 0,
     beginDate: '',
+    categories: '', // added here
   };
 
   const uploadPromises = [];

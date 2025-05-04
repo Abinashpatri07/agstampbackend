@@ -44,6 +44,16 @@ const StampSchema = new Schema(
       default: new Date("9999-12-31T00:00:00.000Z"),
       immutable: true,
     },
+    categories: {
+      type: String,
+      enum: [
+        "Russia 1858-1918",
+        "Russia 1919-1941",
+        "Russia 1941-2000",
+        "Russia Airmails",
+        "Russia Semi-postal",
+      ],
+    },
   },
   { timestamps: true }
 );

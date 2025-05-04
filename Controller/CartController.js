@@ -67,6 +67,11 @@ export const getCart = async (req, res) => {
       model: "Stamp",
     });
 
+    if (cart) {
+      cart.items = cart.items.filter(item => item.stamp !== null);
+      await cart.save();
+    }
+
     if (!cart) {
       return res.status(404).json({ message: "Cart not found" });
     }
