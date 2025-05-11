@@ -25,4 +25,3 @@ customersRoute.get('/user/removeAllitem/:id',authorization, removeAllCartItem);
 customersRoute.post('/user/subscribeMailService',authorization, subscribeMailService);
 
 
-
