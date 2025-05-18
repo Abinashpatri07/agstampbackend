@@ -502,7 +502,7 @@ export const createCheckoutSession = async (req, res) => {
         product_data: {
           name: item.name,
           description: item.description || "",
-          images: item.images || [],
+          images: item.images.map(ele=>ele.publicUrl) || [],
         },
         unit_amount: Math.round(item.price * 100), // Stripe requires amount in cents
       },
