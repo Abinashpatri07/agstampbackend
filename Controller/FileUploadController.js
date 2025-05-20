@@ -168,9 +168,9 @@ export const uploadPhoto = async (req, res) => {
 
             const buffer = Buffer.concat(chunks);
 
-            if (buffer.length > 10 * 1024 * 1024) {
-              return reject(new Error('File size exceeds 10MB limit'));
-            }
+            // if (buffer.length > 10 * 1024 * 1024) {
+            //   return reject(new Error('File size exceeds 10MB limit'));
+            // }
 
             // Check for existing photo and delete it
             const existingPhoto = await PhotoModel.findOne();
