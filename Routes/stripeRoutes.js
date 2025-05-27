@@ -59,44 +59,17 @@
 
 import express from "express";
 import * as stripeController from "../Controller/stripeController.js";
-// import { isAuthenticated } from "../middleware/auth.js"; // Middleware to check if user is authenticated
+import { authorization } from "../Utils/Athorization.js";
 
 const router = express.Router();
 
 // Create checkout session
-router.post("/create-checkout-session", stripeController.createCheckoutSession);
+router.post("/create-checkout-session",authorization,stripeController.createCheckoutSession);
 
 // Verify checkout session - public route
 router.get("/verify-session/:sessionId", stripeController.verifyCheckoutSession);
 
 // Webhook endpoint (raw body is now processed in app.js)
-router.post("/webhook", stripeController.handleWebhook);
-
-// Get user's orders (protected route)
-router.get("/orders", async (req, res) => {
-  try {
-    // Ensure req.user exists (should be set by isAuthenticated middleware)
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Authentication required" 
-      });
-    }
-    
-    const Order = await import("../Model/orderModel.js").then(module => module.default);
-    const orders = await Order.find({ user: req.user.id }).sort({ createdAt: -1 });
-    
-    res.status(200).json({ 
-      success: true, 
-      orders 
-    });
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ 
-      success: false, 
-      message: error.message || "Failed to fetch orders" 
-    });
-  }
-});
+router.post("/webhook",authorization, stripeController.handleWebhook);
 
 export default router;

@@ -7,6 +7,7 @@ import stampModel from '../Model/stampModel.js';
 import PhotoModel from '../Model/WaveModel.js';
 import { mail } from '../Helper/Mail.js';
 import subscriberModel from '../Model/subcriberModel.js';
+import orderModel from '../Model/orderModel.js';
 
 export const userRegister = synchFunc(async (req, res) => {
     const { firstname, lastname, username, email, password } = req.body;
@@ -112,5 +113,12 @@ export const subscribeMailService = synchFunc(async (req, res) => {
         throw new ErrorHandler(400,'something Went Wrong While Sending The Mail!');
     }
 });
-  
+
+export const getAllUserOrder = synchFunc(async (req, res) => {
+    const orders = await orderModel.find({userId:req.user._id}).sort({ createdAt: -1 });
+    res.status(200).json({ 
+      success: true, 
+      orders 
+    });
+}) 
   

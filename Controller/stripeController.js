@@ -480,6 +480,7 @@
 
 import stripe from "../Config/stripe.js"; // Make sure this path is correct
 import Order from "../Model/orderModel.js"; // Ensure this path is correct
+import stampModel from "../Model/stampModel.js";
 import { UserModel } from '../Model/userModel.js';// Update with your actual user model name
 
 // Create a checkout session
@@ -504,7 +505,7 @@ export const createCheckoutSession = async (req, res) => {
           description: item.description || "",
           images: item.images.map(ele=>ele.publicUrl) || [],
         },
-        unit_amount: Math.round(item.price * 100), // Stripe requires amount in cents
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: item.quantity,
     }));
@@ -546,6 +547,7 @@ export const createCheckoutSession = async (req, res) => {
       metadata: {
         ...metadata,
         customerName,
+        customerId:String(req.user._id)
       },
     };
 
@@ -588,6 +590,44 @@ export const verifyCheckoutSession = async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items", "customer"],
     });
+
+    if(session.payment_status == "paid"){
+
+      const stampList = JSON.parse(session.metadata.products)
+
+      ////////////////////////
+      const ids = stampList.map(item => item.mongoID);
+      const stamps = await stampModel.find({ _id: { $in: ids } });
+        const response = stampList.map(item => {
+          const stamp = stamps.find(s => s._id.toString() === item.mongoID);
+          if (!stamp) return null;
+          return {
+            mongoID: item.mongoID,
+            name: stamp.name,
+            category: stamp.categories,
+            unitPrice: stamp.price,
+            image: stamp.images?.[0] || null,
+            quantity: item.quantity,
+            totalPrice: item.quantity * stamp.price,
+          };
+        }).filter(Boolean);
+        const orderInstance = new Order({
+          userId:session.metadata.customerId,
+          items:response,
+          total:session.amount_total / 100,
+          paymentStatus:"paid",
+          paymentDetails:{
+            amount:session.amount_total / 100,
+            paymentId:session.payment_intent,
+            paymentMethod:"card",
+            currency:session.currency
+          },
+          shippingAddress:session.customer_details.address,
+          stripeSessionId:sessionId,
+          paymentIntentId:session.payment_intent
+        })
+        await orderInstance.save();
+    }
 
     res.status(200).json({
       success: true,
@@ -701,6 +741,7 @@ async function handleCheckoutSessionCompleted(session) {
 
 // Helper function to handle payment_intent.succeeded event
 async function handlePaymentIntentSucceeded(paymentIntent) {
+  console.dir(paymentIntent);
   try {
     // Update order payment status
     await Order.findOneAndUpdate(
