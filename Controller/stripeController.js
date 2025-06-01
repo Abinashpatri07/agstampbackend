@@ -479,14 +479,16 @@
 
 
 import stripe from "../Config/stripe.js"; // Make sure this path is correct
+import { checkStockAvailability, updateStampStock } from "../Helper/Helper.js";
 import Order from "../Model/orderModel.js"; // Ensure this path is correct
 import stampModel from "../Model/stampModel.js";
 import { UserModel } from '../Model/userModel.js';// Update with your actual user model name
+import { ErrorHandler } from "../Utils/ErrorHandler.js";
 
 // Create a checkout session
 export const createCheckoutSession = async (req, res) => {
   try {
-    const { items, customerEmail, customerName, shippingAddress, metadata = {} } = req.body;
+    const { items, customerEmail, customerName, shippingType, metadata = {} } = req.body;
 
     // Validate required fields
     if (!items || !items.length) {
@@ -494,6 +496,21 @@ export const createCheckoutSession = async (req, res) => {
         success: false,
         message: "No items provided for checkout",
       });
+    }
+
+
+    const lineItemsCheck = items.map((item) => ({
+      mongoID:item.mongoID,
+      quantity: item.quantity,
+    }));
+
+    const isStock = await checkStockAvailability(lineItemsCheck);
+    if(isStock !== true){
+      res.status(500).json({
+      success: false,
+      message: isStock,
+      });
+      return;
     }
 
     // Format line items for Stripe
@@ -510,6 +527,7 @@ export const createCheckoutSession = async (req, res) => {
       quantity: item.quantity,
     }));
 
+
     // Create the session data object
     const sessionData = {
       payment_method_types: ["card"],
@@ -519,30 +537,31 @@ export const createCheckoutSession = async (req, res) => {
       success_url: `${req.headers.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin}/checkout/cancel`,
       shipping_address_collection: {
-        allowed_countries: ["US", "CA"], // Add more countries as needed
+        allowed_countries: shippingType == "us" ? ["US"] : ["CA"], // Add more countries as needed
       },
       shipping_options: [
         {
           shipping_rate_data: {
             type: "fixed_amount",
             fixed_amount: {
-              amount: 0, // Free shipping
+              amount: shippingType == "us" ? 500 : 2500, 
               currency: "usd",
             },
-            display_name: "Standard Shipping",
+            display_name: "Express Shipping",
             delivery_estimate: {
               minimum: {
                 unit: "business_day",
-                value: 3,
+                value: 1,
               },
               maximum: {
                 unit: "business_day",
-                value: 5,
+                value: 2,
               },
             },
           },
         },
       ],
+
      
       metadata: {
         ...metadata,
@@ -591,7 +610,16 @@ export const verifyCheckoutSession = async (req, res) => {
       expand: ["line_items", "customer"],
     });
 
-    if(session.payment_status == "paid"){
+    const isOrder = await Order.findOne({paymentIntentId:session.payment_intent});
+    if(isOrder){
+      res.status(200).json({
+        success: true,
+        session,
+      });
+      return;
+    }
+
+    if(session.payment_status !== "paid") throw ErrorHandler(400,"error occured while payment")
 
       const stampList = JSON.parse(session.metadata.products)
 
@@ -618,6 +646,8 @@ export const verifyCheckoutSession = async (req, res) => {
           paymentStatus:"paid",
           paymentDetails:{
             amount:session.amount_total / 100,
+            amountSubtotal:session.amount_subtotal / 100,
+            shippingCost:session.shipping_cost.amount_total / 100,
             paymentId:session.payment_intent,
             paymentMethod:"card",
             currency:session.currency
@@ -627,11 +657,21 @@ export const verifyCheckoutSession = async (req, res) => {
           paymentIntentId:session.payment_intent
         })
         await orderInstance.save();
-    }
+        const isUpdated = await updateStampStock(orderInstance);
+
+        if(typeof isUpdated == "string"){
+          res.status(500).json({
+            success: false,
+            message: isUpdated,
+          });
+         return;
+        }
+    
 
     res.status(200).json({
       success: true,
       session,
+      updatedStamp:isUpdated
     });
   } catch (error) {
     console.error("Error verifying checkout session:", error);

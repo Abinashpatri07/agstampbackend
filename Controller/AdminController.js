@@ -6,6 +6,7 @@ import CarouselModel from "../Model/CarouselModel.js";
 import subscriberModel from "../Model/subcriberModel.js";
 import { mail } from "../Helper/Mail.js";
 import { ErrorHandler } from "../Utils/ErrorHandler.js";
+import orderModel from "../Model/orderModel.js";
 
 export const allStamps = synchFunc(async (_, res) => {
     const stamps = await StampModel.find();
@@ -146,5 +147,14 @@ export const sendMailToSubscribers = synchFunc(async (req, res) => {
         res.status(200).json({ success:true, message:"Sent!" });
     }else{
         throw new ErrorHandler(400,'something Went Wrong While Sending The Mail!');
+    }
+});
+
+export const getAllOrders = synchFunc(async (req, res) => {
+    const orders = await orderModel.find();
+    if(orders.length > 0){
+        res.status(200).json({ success:true, orders });
+    }else{
+        throw new ErrorHandler(400,'On Order Placed Yet!');
     }
 });

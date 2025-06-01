@@ -65,6 +65,8 @@ const OrderSchema = new mongoose.Schema(
       paymentMethod: String,
       paymentId: String,
       amount: Number,
+      amountSubtotal: Number,
+      shippingCost:Number,
       currency: String,
     },
 
