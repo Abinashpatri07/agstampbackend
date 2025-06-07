@@ -21,8 +21,8 @@ export async function updateStampStock(order) {
           name: item.name,
           categories: item.category 
         },
-        { $inc: { stock: -item.quantity } }, // Decrement stock by ordered quantity
-        { new: true } // Return updated document
+        { $inc: { stock: -item.quantity } },
+        { new: true } 
       );
 
       if (!stamp) {

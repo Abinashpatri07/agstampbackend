@@ -480,6 +480,8 @@
 
 import stripe from "../Config/stripe.js"; // Make sure this path is correct
 import { checkStockAvailability, updateStampStock } from "../Helper/Helper.js";
+import { mail } from "../Helper/Mail.js";
+import CartModel from "../Model/cartModel.js";
 import Order from "../Model/orderModel.js"; // Ensure this path is correct
 import stampModel from "../Model/stampModel.js";
 import { UserModel } from '../Model/userModel.js';// Update with your actual user model name
@@ -666,7 +668,50 @@ export const verifyCheckoutSession = async (req, res) => {
           });
          return;
         }
-    
+
+      await CartModel.deleteOne({user:req.user._id});
+
+      const today = new Date();
+      const formatted = today.toISOString().split("T")[0];
+
+      let listOfItem = "";
+
+      response.forEach((item)=>{
+        listOfItem+= `
+          <li style="margin-bottom: 10px;">
+              <div><strong>Name:</strong> ${item.name}</div>
+              <div><strong>Category:</strong> ${item.category}</div>
+              <div><strong>Price:</strong> $${item.unitPrice}</div>
+              <div><strong>Quantity:</strong> ${item.quantity}</div>
+              <div><img src=${item.image.publicUrl} alt=${item.name} style="max-width: 100px; margin-top: 5px;"/></div>
+            </li>
+        `
+      })
+
+
+      const htmlBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+          <h2 style="color: #2e7d32;">Thank you for shopping with us!</h2>
+          <p>Hi <strong>${req.user.username}</strong>,</p>
+          <p>Your order has been successfully placed on <strong>${formatted}</strong>.</p>
+          
+          <h3 style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">Order Summary</h3>
+          <ul style="padding-left: 20px;">
+            ${listOfItem}
+          </ul>
+
+          <p><strong>Shipping Amount:</strong> $${session.shipping_cost.amount_total / 100}</p>
+          <p><strong>Total Amount:</strong> $${session.amount_total / 100}</p>
+
+          <p>We’ll send another email when your items are shipped. You can track your order status anytime in your account.</p>
+
+          <p style="margin-top: 20px;">Thank you for choosing us!<br/>The Team</p>
+
+          <hr style="margin-top: 30px;">
+          <small style="color: #888;">This is an automated message. Please do not reply.</small>
+        </div>
+      `;
+      await mail([req.user.email],"Your Order Has Been Placed Successfully! 🛒",htmlBody);
 
     res.status(200).json({
       success: true,

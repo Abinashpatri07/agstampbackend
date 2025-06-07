@@ -67,7 +67,7 @@ const router = express.Router();
 router.post("/create-checkout-session",authorization,stripeController.createCheckoutSession);
 
 // Verify checkout session - public route
-router.get("/verify-session/:sessionId", stripeController.verifyCheckoutSession);
+router.get("/verify-session/:sessionId",authorization, stripeController.verifyCheckoutSession);
 
 // Webhook endpoint (raw body is now processed in app.js)
 router.post("/webhook",authorization, stripeController.handleWebhook);
