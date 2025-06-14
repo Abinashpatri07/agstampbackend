@@ -102,7 +102,7 @@ app.use((req, res, next) => {
 const allowedOrigins = [process.env.FORNTEND_URL, 'http://localhost:3000']; // Added localhost:3000 for development
 const corsOptions = {
     origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization", "stripe-signature"],
 };

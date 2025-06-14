@@ -7,6 +7,7 @@ import subscriberModel from "../Model/subcriberModel.js";
 import { mail } from "../Helper/Mail.js";
 import { ErrorHandler } from "../Utils/ErrorHandler.js";
 import orderModel from "../Model/orderModel.js";
+import { getMonthlyPurchasers, getTopStampsThisMonth, summarizeOrdersByMonth } from "../Helper/Helper.js";
 
 export const allStamps = synchFunc(async (_, res) => {
     const stamps = await StampModel.find();
@@ -157,4 +158,31 @@ export const getAllOrders = synchFunc(async (req, res) => {
     }else{
         throw new ErrorHandler(400,'On Order Placed Yet!');
     }
+});
+
+export const editOrder = synchFunc(async (req, res) => {
+    const {id,status} = req.body;
+    const order = await orderModel.findById(id);
+    if(!order) throw new ErrorHandler(404,'order not found');
+    order.status = status;
+    await order.save();
+    const orders = await orderModel.find();
+    res.status(200).json({
+      success:true, orders
+    })
+});
+
+export const dashboardData = synchFunc(async (_, res) => {
+  const orders = await orderModel.find();
+  const monthlyCategorySummary = summarizeOrdersByMonth(orders);
+  const monthlyPurchasers = getMonthlyPurchasers(orders);
+  const topStampsThisMonth = getTopStampsThisMonth(orders)
+  res.status(200).json({
+    success:true,
+    data:{
+      barchatData:monthlyCategorySummary,
+      lineChatData:monthlyPurchasers,
+      topStampsThisMonth
+    }
+  })
 });
