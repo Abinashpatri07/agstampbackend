@@ -2,7 +2,7 @@ import express from 'express';
 import { authorization } from '../Utils/Athorization.js';
 import { createCarousel, createStamp, deleteCarousel, deleteStamp, updateCarousel, uploadPhoto } from '../Controller/FileUploadController.js';
 import { Protected } from '../Utils/Protected.js';
-import { allCarousel, allStamps, dashboardData, editOrder, getAllOrders, getAllSubscriber, sendMailToSubscribers, singleCarousel, singleStamp, updateStamp } from '../Controller/AdminController.js';
+import { allCarousel, allStamps, dashboardData, editOrder, getAllContactus, getAllOrders, getAllSubscriber, sendMailToSubscribers, singleCarousel, singleStamp, updateStamp } from '../Controller/AdminController.js';
 
 export const adminRoute = express.Router();
 
@@ -15,6 +15,7 @@ adminRoute.post('/admin/sendmailtosubscribers',authorization,Protected,sendMailT
 adminRoute.get('/admin/usersallorders',authorization,Protected,getAllOrders);
 adminRoute.patch('/admin/updateOrder',authorization,Protected,editOrder);
 adminRoute.get('/admin/dashBoardData',authorization,Protected,dashboardData);
+adminRoute.get('/admin/all/feedback',authorization,Protected,getAllContactus);
 
 
 // CarouselModel

@@ -8,6 +8,7 @@ import { mail } from "../Helper/Mail.js";
 import { ErrorHandler } from "../Utils/ErrorHandler.js";
 import orderModel from "../Model/orderModel.js";
 import { getMonthlyPurchasers, getTopStampsThisMonth, summarizeOrdersByMonth } from "../Helper/Helper.js";
+import ContactUs from "../Model/ContactUs.js";
 
 export const allStamps = synchFunc(async (_, res) => {
     const stamps = await StampModel.find();
@@ -184,5 +185,13 @@ export const dashboardData = synchFunc(async (_, res) => {
       lineChatData:monthlyPurchasers,
       topStampsThisMonth
     }
+  })
+});
+
+export const getAllContactus = synchFunc(async (_, res) => {
+  const allContacts = await ContactUs.find();
+  res.status(200).json({
+    success:true,
+    allContacts
   })
 });

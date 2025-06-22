@@ -8,6 +8,7 @@ import PhotoModel from '../Model/WaveModel.js';
 import { mail } from '../Helper/Mail.js';
 import subscriberModel from '../Model/subcriberModel.js';
 import orderModel from '../Model/orderModel.js';
+import ContactUs from '../Model/ContactUs.js';
 
 export const userRegister = synchFunc(async (req, res) => {
     const { firstname, lastname, username, email, password } = req.body;
@@ -120,5 +121,32 @@ export const getAllUserOrder = synchFunc(async (req, res) => {
       success: true, 
       orders 
     });
-}) 
-  
+});
+
+export const contactUSController = synchFunc(async (req, res) => {
+    const { name, email, subject, message } = req.body;
+
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
+
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
+            <h2 style="color: #333;">📬 New Contact Form Submission</h2>
+
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Message:</strong></p>
+            <div style="background: #fff; padding: 12px; border-left: 4px solid #007BFF; margin-top: 10px; color: #333;">
+            ${message.replace(/\n/g, "<br />")}
+            </div>
+
+            <hr style="margin-top: 20px;" />
+            <p style="font-size: 12px; color: #888;">This email was generated automatically from your website contact form.</p>
+        </div>
+    `
+
+    await mail([process.env.ADMIN_EMAIL],`Contact Form: ${subject}`,html);
+    res.status(201).json({ success: true, message: 'Message sent successfully' });
+});
