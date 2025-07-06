@@ -9,6 +9,7 @@ import { mail } from '../Helper/Mail.js';
 import subscriberModel from '../Model/subcriberModel.js';
 import orderModel from '../Model/orderModel.js';
 import ContactUs from '../Model/ContactUs.js';
+import categoryModel from '../Model/CategoryModal.js';
 
 export const userRegister = synchFunc(async (req, res) => {
     const { firstname, lastname, username, email, password } = req.body;
@@ -149,4 +150,9 @@ export const contactUSController = synchFunc(async (req, res) => {
 
     await mail([process.env.ADMIN_EMAIL],`Contact Form: ${subject}`,html);
     res.status(201).json({ success: true, message: 'Message sent successfully' });
+});
+
+export const getCategories = synchFunc(async (req, res) => {
+  const categories = await categoryModel.find();
+  res.status(201).json(categories);
 });

@@ -9,9 +9,10 @@ import { ErrorHandler } from "../Utils/ErrorHandler.js";
 import orderModel from "../Model/orderModel.js";
 import { getMonthlyPurchasers, getTopStampsThisMonth, summarizeOrdersByMonth } from "../Helper/Helper.js";
 import ContactUs from "../Model/ContactUs.js";
+import categoryModel from "../Model/CategoryModal.js";
 
 export const allStamps = synchFunc(async (_, res) => {
-    const stamps = await StampModel.find();
+    const stamps = await StampModel.find().populate();
     res.status(201).json({ success:true, stamps });
 });
 
@@ -195,3 +196,18 @@ export const getAllContactus = synchFunc(async (_, res) => {
     allContacts
   })
 });
+
+
+export const addCategory = synchFunc(async (req, res) => {
+  const category = await categoryModel.create({ name: req.body.name });
+  res.status(201).json(category);
+});
+
+// // POST /api/categories
+// app.post("/api/categories", async (req, res) => {
+//   try {
+    
+//   } catch (err) {
+//     res.status(400).json({ error: "Category already exists or is invalid" });
+//   }
+// });
