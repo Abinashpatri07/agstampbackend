@@ -31,7 +31,7 @@ const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
   port: 587, // use 465 for SSL if needed
   auth: {
-    user: "abinashpatri5@gmail.com", // your Brevo login email
+    user: "9041d4001@smtp-brevo.com", // your Brevo login email
     pass: "OV9MRqLGPB13I7TW",          // generate from Brevo SMTP settings
   },
 });
